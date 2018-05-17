@@ -7,6 +7,7 @@ import pylab as P
 import copy, time
 import emcee
 import wztanh as model
+import classy
 
 # MCMC sampler settings
 NTHREADS = 4
@@ -75,6 +76,21 @@ lss_data = [
     ('CMB approx', 'DM', 1090., 94.51, np.sqrt(0.004264)) # FIXME
 ]
 
+"""
+# Audberg et al.
+cmb_data = np.array([0.02245, 0.1386, 94.33]) # omega_b, omega_cb, D_M(1090)/r_d
+cmb_cov = np.array([ [ 1.286e-7, -6.033e-7,  1.443e-5],
+                     [-6.033e-7,  7.542e-6, -3.605e-5],
+                     [ 1.443e-5, -3.605e-5,  0.004264] ])
+cmb_icov = np.linalg.inv(cmb_cov)
+
+# Planck 2015 (1D marginals)
+plnck_rstar = (144.61, 0.49)
+plnck_theta_s = (1.04105, 0.00046) # theta_* = r_s(z*) / D_A(z*)
+plnck_omegab = (0.02222, 0.00023)
+plnck_omegam = (0.1426, 0.0020)
+"""
+
 # Planck 2015 Gaussianised
 pl15_mean, pl15_icov = load_planck_data("planck_derived_fisher_distances", 
                                       params=['omegabh2', 'omegamh2', 'DAstar'])
@@ -122,6 +138,26 @@ def loglike(pvals, pnames, params0, priors, verbose=False):
     idx = cmb_idxs[0]
     assert np.abs(zc[idx] - 1090.) < 10., "CMB datapoint found at wrong redshift!"
     
+    """
+    # Audberg Planck values
+    # Construct CMB parameter model vector: omega_b, omega_cb, DM(1090)/r_d
+    h = p['h']
+    cmb_model = np.array([p['omegaB']*h**2., p['omegaM']*h**2., dm[idx]/r_d])
+    _logL = -0.5 * np.dot(cmb_model, np.dot(cmb_icov, cmb_model))
+    if verbose: print "\t%10s: %3.3f" % ("CMB", _logL)
+    logL += _logL / 1e4 # FIXME: Seriously down-weighting CMB
+    # FIXME: Cut out the CMB!
+    """
+    """
+    # Planck 2015 1D marginal CMB
+    h = p['h']
+    theta_s_model = plnck_rstar[0] / dm[idx]
+    _logL = -0.5 * ((theta_s_model*100. - plnck_theta_s[0]) / plnck_theta_s[1])**2.
+    _logL += -0.5* ((p['omegaM']*h**2. - plnck_omegam[0]) / plnck_omegam[1])**2.
+    _logL += -0.5* ((p['omegaB']*h**2. - plnck_omegab[0]) / plnck_omegab[1])**2.
+    """
+    #print (theta_s_model*100. - plnck_theta_s[0]) / plnck_theta_s[1]
+    
     # Planck 2015 Gaussianised likelihood
     # Assumed order is 'omegabh2', 'omegamh2', 'DAstar'
     h = p['h']
@@ -131,6 +167,35 @@ def loglike(pvals, pnames, params0, priors, verbose=False):
     if verbose: print "\t%10s: %3.3f" % ("CMB", _logL)
     logL += _logL
     
+    """
+    # FIXME: Test CLASS
+    class_params = {
+        "output"    : "",
+        "T_cmb"     : 2.725,
+        "h"         : p['h'],
+        "Omega_cdm" : p['omegaM']-p['omegaB'],
+        "Omega_b"   : p['omegaB'],
+        "A_s"       : 2e-9,
+        "n_s"       : 1.0,
+        #"w0_fld"    : -1., #p['w0'],
+        #"wa_fld"    : 0.0,
+        "Omega_k"  : 0.0,
+        "N_ur"     : 3.0, # normally 3
+        "N_ncdm"   : 1,   # 1 species
+    }
+    cosm = classy.Class()
+    cosm.set(class_params)
+    cosm.compute()
+    model_vec = np.array([p['omegaB']*h**2., p['omegaM']*h**2., 
+                          (1.+1090.)*cosm.angular_distance(1090.)])
+    x = model_vec - pl15_mean
+    print cosm.angular_distance(1090.)*(1.+1090.), dm[idx]
+    cosm.struct_cleanup()
+    
+    _logL = -0.5 * np.dot(x, np.dot(pl15_icov, x).T)
+    if verbose: print "\t%10s: %3.3f" % ("CMB CLASS", _logL)
+    logL += _logL
+    """
     return logL
 
 
