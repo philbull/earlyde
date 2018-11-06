@@ -57,7 +57,7 @@ def wz(a, params):
     z = 1./a - 1.
     
     # Mocker model
-    if 'mocker' in params.keys():
+    if 'mocker' in params.keys() and params['mocker']:
         w0 = params['w0']; Cpow = params['Cpow']
         w = w0 * a**Cpow / (w0*(1. - a**Cpow) + 1.)
         return w
@@ -67,6 +67,16 @@ def wz(a, params):
     zc = params['zc']; deltaz = params['deltaz']
     return w0 + 0.5 * (winf - w0) * (np.tanh((z - zc) / deltaz) + 1.)
     
+def omegaR(params):
+    """
+    Fractional density of radiation (incl. neutrinos).
+    """
+    Neff = 3.046
+    #OmegaR = OmegaM / (1. + z_eq) #* (1. + Neff*(7./8.)*(4./11.)**(4./3.))
+    Omega_g = 2.471165e-05 / params['h']**2. # FIXME: Copied this number from CCL
+    OmegaR = Omega_g * (1. + Neff*(7./8.)*(4./11.)**(4./3.))
+    return OmegaR
+
 def omegaDE(a=None, params=None):
     """
     Fractional density of dark energy, Omega_DE(a) = rho_DE(a) / rho_DE(a=1).
@@ -102,10 +112,7 @@ def Hz(a, params):
     #OmegaM += Omega_numass
     
     # Radiation fractional density at z=0
-    Neff = 3.046
-    #OmegaR = OmegaM / (1. + z_eq) #* (1. + Neff*(7./8.)*(4./11.)**(4./3.))
-    Omega_g = 2.471165e-05 / h**2. # FIXME: Copied this number from CCL
-    OmegaR = Omega_g * (1. + Neff*(7./8.)*(4./11.)**(4./3.))
+    OmegaR = omegaR(params)
     
     # Set OmegaDE,0 using a constraint
     OmegaDE0 = 1. - OmegaM - OmegaR - OmegaK
