@@ -7,56 +7,49 @@ import pylab as P
 import copy, time
 import emcee
 import wztanh as model
-
-# MCMC sampler settings
-NTHREADS = 4
-NSAMPLES = 1500
-NWALKERS = 40
-#CHAIN_FILE = "wcdm_cmbonly.dat"
-#CHAIN_FILE = "wcdm_cmb_lss.dat"
-#CHAIN_FILE = "wcdm_cmb_lss_lya.dat"
-#CHAIN_FILE = "wztanh_zc100_cmb_lss.dat"
-CHAIN_FILE = "wztanh_cmb_lss_MADEUP.dat"
-CHAIN_FILE = "wzmocker_cmb_lss.dat"
+from load_data_files import *
 
 np.random.seed(10)
 
+# MCMC sampler settings
+NTHREADS = 4
+NSAMPLES = 10 #1500
+NWALKERS = 40
+MOCKER = False
 
-def load_planck_data(froot, params=['omegabh2', 'omegamh2', 'DAstar']):
-    """
-    Load Gaussianised Planck data from file.
-    The parameters will be ordered in the output mean and C^-1 arrays according 
-    to their order in the 'params' list.
-    """
-    f_mean = "%s.mean.dat" % froot
-    f_cov = "%s.cov.dat" % froot
-    
-    # Load header
-    f = open(f_mean, 'r')
-    hdr = f.readline()
-    f.close()
-    names = hdr[2:-1].split(' ')
-    
-    # Load mean, cov, inverse cov
-    mean = np.genfromtxt(f_mean)
-    cov = np.genfromtxt(f_cov)
-    
-    # Select only certain parameters
-    # We want to *marginalise* over the non-included parameters, which means 
-    # we only keep the elements of the *covariance* (not C^-1) for the 
-    # parameters that we do want to include.
-    new_mean = np.array([mean[names.index(pn)] for pn in params])
-    new_cov = np.zeros((len(params), len(params)))
-    for i, pni in enumerate(params):
-        for j, pnj in enumerate(params):
-            new_cov[i,j] = cov[names.index(pni), names.index(pnj)]
-    
-    # The correct covariance
-    icov = np.linalg.inv(new_cov)
-    return new_mean, icov
+CHAIN_FILE_ROOT = "test_wztanh"
+
+# Which likelihoods to use
+use_lss = True
+use_planck = True
+
+# Choose which Fisher-based likelihoods to use
+use_expts = ['DESI', 'HETDEX']
+
+# Construct chain filename
+CHAIN_FILE = "%s" % CHAIN_FILE_ROOT
+if use_planck: CHAIN_FILE += "_cmb"
+if use_lss: CHAIN_FILE += "_lss"
+for expt in use_expts: CHAIN_FILE += "_%s" % expt.lower()
+CHAIN_FILE += ".dat"
 
 
-# Data
+# Available Fisher matrix likelihoods
+fisher_mats = {
+    'DESI':         "Fisher-full-gDESI_CV_desicv",
+    'HETDEX':       "Fisher-full-HETDEXdz03",
+    'CosVis_nw':    "Fisher-full-iCosVis256x256_2yr_nowedge",
+    'CosVis_pbw':   "Fisher-full-iCosVis256x256_2yr_3pbwedge", 
+    'CosVis_hw':    "Fisher-full-iCosVis256x256_2yr_wedge", 
+    'HIRAX_nw':     "Fisher-full-iHIRAX_2yr",
+    'HIRAX_pbw':    "Fisher-full-iHIRAX_2yr_3pbwedge",
+    'HIRAX_hw':     "Fisher-full-iHIRAX_2yr_horizwedge",
+    'HIZRAX_nw':    "Fisher-full-iHIRAX_highz_2yr",
+    'HIZRAX_pbw':   "Fisher-full-iHIRAX_highz_2yr_3pbwedge",
+    'HIZRAX_hw':    "Fisher-full-iHIRAX_highz_2yr_horizwedge",
+}
+
+# Low-z data
 r_d = 147.33 #147.49 # \pm 0.59 Mpc [Planck LCDM Mnu and N_eff, see p6 of 1411.1074]
 lss_data = [
     ('6dFGS', 'DV', 0.106, 3.047, 0.137),
@@ -68,16 +61,35 @@ lss_data = [
     #('LyaF auto', 'DH', 2.34, 9.18, 0.28),
     #('LyaF-QSO', 'DM', 2.36, 36.288, 1.344),
     #('LyaF-QSO', 'DH', 2.36, 9.00, 0.30),
-    
-    #('MADEUP', 'DH', 4.0, 4.789, 0.004789), # FIXME: Just took LCDM at z=4
-    #('MADEUP', 'DM', 2.36, 36.288, 0.0344), # FIXME
-    
-    ('CMB approx', 'DM', 1090., 94.51, np.sqrt(0.004264)) # FIXME
+    ('CMB approx', 'DM', 1090., 94.51, np.sqrt(0.004264))
+    # FIXME: Keep CMB line for z value only
 ]
 
-# Planck 2015 Gaussianised
+# CMB: Planck 2015, Gaussianised
 pl15_mean, pl15_icov = load_planck_data("planck_derived_fisher_distances", 
                                       params=['omegabh2', 'omegamh2', 'DAstar'])
+
+# Get data for all specified Fisher-based experiments
+expt_data = {e: load_fisher_data(fisher_mats[e]) for e in use_expts}
+
+def fisher_like(expt_name, zc, dh, dm, verbose=False):
+    """
+    Calculate Fisher matrix-based likelihood, assuming H(z) and D_A(z) are the 
+    parameters.
+    """
+    # Get pre-loaded Fisher data for this experiment
+    expt_zc, expt_mean, expt_icov = expt_data[expt_name]
+    
+    # Convert distances in this model into H and D_A
+    # Units: expects H ~ 100 km/s/Mpc, D_A ~ Gpc
+    Hz = [model.C / dh[np.where(zc==_z)][0] / 1e2 for _z in expt_zc]
+    DAz = [dm[np.where(zc==_z)][0] / (1.+_z) / 1e3 for _z in expt_zc]
+    mean = np.concatenate((Hz, DAz))
+    x = mean - expt_mean
+    
+    logL = -0.5 * np.dot(x, np.dot(expt_icov, x))
+    if verbose: print "\t%16s: %3.3f" % ("%s Fisher" % expt_name, logL)
+    return logL
 
 
 def loglike(pvals, pnames, params0, priors, verbose=False):
@@ -102,19 +114,27 @@ def loglike(pvals, pnames, params0, priors, verbose=False):
     # Collect all available datapoints
     dname, dtype, zc, dval, derr = zip(*lss_data)
     
+    # Make sure external experiments have distances calculated
+    for e in expt_data.keys():
+        zc = np.concatenate((zc, expt_data[e][0]))
+    
     # Calculate model values for these datapoints
-    # FIXME: Ignoring the covariance between H ad D_A for now
     dv, dm, dh = model.lss_distances(np.array(zc), p)
     model_calc = {'DV': dv, 'DM': dm, 'DH': dh}
     
     # Calculate simple independent Gaussian log-likelihoods for LSS
+    # FIXME: Ignoring the covariance between H and D_A for now
     logL = 0
     for i in range(len(dname)):
         if 'CMB' in dname[i]: continue # Skip CMB for now
         dist = model_calc[dtype[i]] # Get distance measure for this data point
         _logL = -0.5*(dval[i] - dist[i]/r_d)**2. / derr[i]**2.
-        if verbose: print "\t%10s: %3.3f" % (dname[i], _logL)
-        logL += _logL
+        if verbose: print "\t%16s: %3.3f" % (dname[i], _logL)
+        if use_lss: logL += _logL
+    
+    # Calculate log likelihoods for Fisher-based experiments
+    for ename in use_expts:
+        logL += fisher_like(ename, zc, dh, dm, verbose=verbose)
     
     # Find where CMB item is in the list of calculated distances
     cmb_idxs = [i for i in range(len(dname)) if 'CMB' in dname[i]]
@@ -128,8 +148,8 @@ def loglike(pvals, pnames, params0, priors, verbose=False):
     model_vec = np.array([p['omegaB']*h**2., p['omegaM']*h**2., dm[idx]])
     x = model_vec - pl15_mean
     _logL = -0.5 * np.dot(x, np.dot(pl15_icov, x).T)
-    if verbose: print "\t%10s: %3.3f" % ("CMB", _logL)
-    logL += _logL
+    if verbose: print "\t%16s: %3.3f" % ("Planck CMB", _logL)
+    if use_planck: logL += _logL
     
     return logL
 
@@ -201,7 +221,8 @@ if __name__ == '__main__':
     
     # Set (uniform) prior ranges
     priors = {
-        'w0':       (-2., -0.1),
+        #'w0':       (-1., -0.1), # FIXME: Enable for Mocker model
+        'w0':       (-2., -0.1), # FIXME: Enable for tanh model
         'winf':     (-2., -0.1),
         'zc':       (-0.2, 10.), #(-2., 1000.),
         'deltaz':   (0.01, 3.), #(0.01, 5.),
@@ -214,7 +235,7 @@ if __name__ == '__main__':
     
     # Set initial/default parameter values
     params0 = {
-        'w0':       -1.,
+        'w0':       -0.99,
         'winf':     -0.8,
         'zc':       2.0, #1e5
         'deltaz':   0.5,
@@ -227,18 +248,18 @@ if __name__ == '__main__':
     
     # Set which parameters should be sampled
     #pnames = ['h', 'omegaB', 'omegaM', 'w0',]
-    #pnames = ['omegaM', 'w0', 'h', 'omegaB', 'winf', 'zc', 'deltaz']
+    pnames = ['omegaM', 'w0', 'h', 'omegaB', 'winf', 'zc', 'deltaz']
     #pnames = ['omegaM', 'w0', 'h', 'omegaB', 'omegaK', 'winf', 'zc', 'deltaz']
     #pnames = ['omegaM', 'w0', 'omegaB', 'winf', 'zc', 'deltaz']
-    pnames = ['h', 'omegaB', 'omegaM', 'w0', 'Cpow']
+    if MOCKER: pnames = ['h', 'omegaB', 'omegaM', 'w0', 'Cpow']
     
     pvals = [params0[pn] for pn in pnames]
-    
-    params0['mocker'] = True
+    if MOCKER: params0['mocker'] = True
     
     #omegaM, omegaK, w0, h, deltaz, omegaB, winf, z_eq, zc
-    #logL = loglike(pvals, pnames, params0, priors, verbose=True)
-    #print logL
+    logL = loglike(pvals, pnames, params0, priors, verbose=True)
+    print "\t%16s: %3.3f" % ("TOTAL", logL)
+    print "\tOutput file:", CHAIN_FILE
     
     # Run the MCMC
     run_mcmc(pnames, params0, priors)
