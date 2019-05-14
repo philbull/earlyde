@@ -1,5 +1,6 @@
 import numpy as np
 import wztanh as model
+import os
 
 def load_planck_data(froot, params=['omegabh2', 'omegamh2', 'DAstar']):
     """
@@ -54,8 +55,11 @@ def load_fisher_data(froot):
     
     # Calculate mean values of H and D_A in LCDM model
     abinc = 1. / (1. + zbinc)
-    plcdm = model.pdict(h=0.6731, omegaM=0.315, omegaK=0.0, omegaB=0.045, 
+    #plcdm = model.pdict(h=0.6731, omegaM=0.315, omegaK=0.0, omegaB=0.045, 
+    #                    w0=-1., winf=-1., zc=1e5, deltaz=0.5)
+    plcdm = model.pdict(h=0.6727, omegaM=0.3166, omegaK=0.0, omegaB=0.04941, 
                         w0=-1., winf=-1., zc=1e5, deltaz=0.5)
+                        
     # Convert units to same as Fisher matrix: H ~ (100 km/s/Mpc); D_A ~ Gpc
     Hc = model.Hz(abinc, plcdm) / 1e2 # 100 km/s/Mpc
     DAc = model.DAz(abinc, plcdm) / 1e3 # Gpc
@@ -77,3 +81,46 @@ def load_fisher_data(froot):
     # Return the inverse covariance for this subset of parameters
     icov = np.linalg.inv(new_cov)
     return zbinc, mean_vec, icov
+
+
+def load_chain(fname, burnin=0):
+    """
+    Load MCMC chain output from file
+    """
+    def load_header(hdrname):
+        f = open(hdrname, 'r')
+        hdr = f.readline()
+        f.close()
+        names = hdr[2:-1].split(' ')
+        return names
+    
+    # Load from cache if one exists; otherwise, load from dat file
+    if os.path.isfile("%s.npy" % fname):
+        # Load from cache
+        dat = np.load("%s.npy" % fname)
+        names = load_header("%s.params" % fname)
+        print("Loaded from cache, shape", dat.shape)
+    else:
+        # Load data from dat file and store in cache
+        dat = np.genfromtxt("%s.dat" % fname).T
+        np.save("%s" % fname, dat)
+        
+        # Load parameter names and store in cache
+        names = load_header("%s.dat" % fname)
+        f = open("%s.params" % fname, 'w')
+        f.write("# %s\n" % " ".join(names))
+        f.close()
+        print("Loaded from dat file, shape", dat.shape)
+        
+    # Check that data array and list of param names have right shape/length
+    assert dat.shape[0] == len(names), \
+            "Number of data columns does not match number of column names"
+    
+    # Reformat data array into dict
+    data = {}
+    for i, n in enumerate(names):
+        data[n] = dat[i][burnin:] # trim burn-in
+    
+    print(data.keys())
+    
+    return data

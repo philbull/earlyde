@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 """
 Plot results of MCMC chains.
 """
@@ -6,9 +6,10 @@ import numpy as np
 import pylab as P
 import wztanh as model
 
-#MODE = 'scatter'
+MODE = 'scatter'
 #MODE = 'wz'
-MODE = 'percentiles'
+#MODE = 'percentiles'
+#MODE = 'hist'
 
 #fnames = ["wcdm_cmbonly.dat", "wcdm_cmb_lss.dat", "wcdm_cmb_lss_lya.dat",
 #          "wztanh_cmb_lss.dat", "wztanh_zc100_cmb_lss.dat"]
@@ -20,6 +21,7 @@ MODE = 'percentiles'
 #fnames = ["wztanh_cmb_lss.dat", "wztanh_cmb_lss_desi.dat"]
 #labels = ['tanh CMB + LSS', 'tanh CMB + LSS + DESI']
 
+"""
 fnames = [ "new_wztanh_cmb_lss.dat", 
            "new_wztanh_cmb_lss_desi.dat", 
            "new_wztanh_cmb_lss_desi_cosvis.dat",
@@ -28,6 +30,17 @@ labels = [ 'tanh CMB + LSS',
            'tanh CMB + LSS + DESI', 
            'tanh CMB + LSS + DESI + Stage 2',
            'tanh CMB + LSS + DESI + Stage 2 no wedge' ]
+"""
+
+fnames = [ "final2_wztanh_cmb_lss.dat", 
+           "final_wztanh_cmb_lss_desi.dat", 
+           "final2_wztanh_cmb_lss_hirax_hw.dat",
+           "final2_wztanh_cmb_lss_hirax_nw.dat" ]
+labels = [ 'tanh CMB + LSS', 
+           'tanh CMB + LSS + DESI', 
+           'tanh CMB + LSS + HIRAX (horiz. wedge)',
+           'tanh CMB + LSS + HIRAX (no wedge)' ]
+
 
 
 def load_chain(fname):
@@ -52,15 +65,48 @@ if MODE == 'scatter':
     P.subplot(111)
     for i, fname in enumerate(fnames):
         dat = load_chain(fname)
-        print dat.keys()
-        print dat['w0'].shape
-        x = (dat['w0'][10000:] - dat['winf'][10000:]) / (1. + dat['zc'][10000:])
-        #dat['w0'][10000:] - dat['winf'][10000:]
-        y = dat['logl'][10000:] #dat['zc'][10000:]
+        print(dat.keys())
+        print(dat['w0'].shape)
+        # Steppyness
+        #x = (dat['w0'][10000:] - dat['winf'][10000:]) / (1. + dat['zc'][10000:])
+        #y = dat['logl'][10000:] #dat['zc'][10000:] # logL
+        
+        # w0, winf
+        x = dat['w0'][100000:] # FIXME: 100k!
+        y = dat['winf'][100000:]
+        
         P.plot(x, y, ls='none', marker='.', alpha=0.15, label=labels[i])
 
+    #P.xlabel("Steppyness $(w_0 - w_\infty) / (1 + z_c)$", fontsize=15)
+    #P.ylabel("$\log\mathcal{L}$", fontsize=15)
+    P.xlabel("$w_0$", fontsize=15)
+    P.ylabel("$w_\infty$", fontsize=15)
+
+    #P.plot(0.67, 0.318, 'ko')
+    #P.plot(-1., 0.318, 'ko')
+    P.axvline(-1., color='k', ls='dashed')
+
+    #P.yscale('log')
+    P.legend(loc='upper left', frameon=False)
+    P.tight_layout()
+
+    P.show()
+
+
+if MODE == 'hist':
+    P.subplot(111)
+    for i, fname in enumerate(fnames):
+        dat = load_chain(fname)
+        print(dat.keys())
+        print(dat['w0'].shape)
+        x = (dat['w0'][10000:] - dat['winf'][10000:]) / (1. + dat['zc'][10000:])
+        #dat['w0'][10000:] - dat['winf'][10000:]
+        #y = dat['logl'][10000:] #dat['zc'][10000:]
+        print("%s: std = %3.3f" % (labels[i], np.std(x)))
+        P.hist(x, bins=100, range=(-0.2, 0.2), histtype='step', label=labels[i])
+
     P.xlabel("Steppyness $(w_0 - w_\infty) / (1 + z_c)$", fontsize=15)
-    P.ylabel("$\log\mathcal{L}$", fontsize=15)
+    #P.ylabel("$\log\mathcal{L}$", fontsize=15)
 
     #P.plot(0.67, 0.318, 'ko')
     #P.plot(-1., 0.318, 'ko')
@@ -73,13 +119,13 @@ if MODE == 'scatter':
     P.show()
 
 
-
 if MODE == 'wz':
     # Load data and select random samples
     #dat = load_chain("wztanh_cmb_lss.dat")
-    dat = load_chain("wztanh_cmb_lss_desi.dat")
+    #dat = load_chain("wztanh_cmb_lss_desi.dat")
+    dat = load_chain(fnames[2])
     np.random.seed(10)
-    print dat.keys()
+    print(dat.keys())
 
     idxs = np.random.randint(low=10000, high=dat['h'].size, size=1500)
 
@@ -92,7 +138,7 @@ if MODE == 'wz':
     #print idxs.size
 
     # Scale factor array
-    z = np.linspace(0., 10., 500)
+    z = np.logspace(-4., 3., 500)
     a = 1./(1.+z)
 
     P.subplot(111)
@@ -118,9 +164,10 @@ if MODE == 'wz':
     P.xlabel("z", fontsize=15)
     P.ylabel("w(z)", fontsize=15)
     
-    P.ylim((0., 5.))
+    P.ylim((-2., 0.))
 
     #P.yscale('log')
+    P.xscale('log')
     P.tight_layout()
     P.show()
 
@@ -136,45 +183,51 @@ if MODE == 'percentiles':
     z = np.linspace(0., 10., 100)
     a = 1./(1.+z)
     
-    ode = []
-    for i in range(10000, dat['h'].size):
+    ode = []; wz = []
+    idxs = np.random.randint(low=10000, high=dat['h'].size, size=50000)
+    for i in idxs:
         pp = {key: dat[key][i] for key in dat.keys()}
         #pp['mocker'] = True # FIXME
-        OmegaDE0 = 1. - pp['omegaM'] - model.omegaR(pp) - 0.
-        ode.append( OmegaDE0 * model.omegaDE(a, pp) )
+        wz.append( model.wz(a, pp) )
+        #OmegaDE0 = 1. - pp['omegaM'] - model.omegaR(pp) - 0.
+        #ode.append( OmegaDE0 * model.omegaDE(a, pp) )
     
     # Get percentiles of w(z) in each z bin
     #wz = [model.wz(a, {key: dat[key][i] for key in dat.keys()}) 
     #      for i in range(10000, dat['h'].size)] # dat['h'].size
     pcts = [2.5, 16., 50., 84., 97.5]
-    print dat['h'].size
+    print(dat['h'].size)
 
-    pct = np.percentile(ode, pcts, axis=0)
+    #pct = np.percentile(ode, pcts, axis=0)
+    pct = np.percentile(wz, pcts, axis=0)
     for i in range(pct.shape[0]):
         P.plot(z, pct[i], 'k-', lw=1.8, alpha=1. - np.abs(pcts[i] - 50.)/70.)
 
-    P.plot(z, np.mean(ode, axis=0), 'r-', lw=1.8)
+    #P.plot(z, np.mean(ode, axis=0), 'r-', lw=1.8)
+    P.plot(z, np.mean(wz, axis=0), 'r-', lw=1.8)
     
     # LCDM curves
     plcdm = model.pdict(h=0.6731, omegaM=0.315, omegaK=0.0, omegaB=0.045, 
                         w0=-1., winf=-1., zc=1e5, deltaz=0.5)
-    OmegaDE0 = 1. - plcdm['omegaM'] - model.omegaR(plcdm) - 0.
-    P.plot(z, OmegaDE0*model.omegaDE(a, plcdm), 'y-', lw=1.8, alpha=1.)
+    #OmegaDE0 = 1. - plcdm['omegaM'] - model.omegaR(plcdm) - 0.
+    #P.plot(z, OmegaDE0*model.omegaDE(a, plcdm), 'y-', lw=1.8, alpha=1.)
     
-    P.plot(z, plcdm['omegaM'] * a**-3., 'g-', lw=1.8)
+    #P.plot(z, plcdm['omegaM'] * a**-3., 'g-', lw=1.8)
     
-    lbls = ["z", "OmegaDE_LCDM",]
-    lbls += ["OmegaDE[%2.1f pct]" % _pct for _pct in pcts]
-    np.savetxt("%s.percentiles" % fn,
-               np.column_stack((z, OmegaDE0*model.omegaDE(a, plcdm), pct.T)), 
-               header=" ".join(lbls))
+    #lbls = ["z", "OmegaDE_LCDM",]
+    #lbls += ["OmegaDE[%2.1f pct]" % _pct for _pct in pcts]
+    #np.savetxt("%s.percentiles" % fn,
+    #           np.column_stack((z, OmegaDE0*model.omegaDE(a, plcdm), pct.T)), 
+    #           header=" ".join(lbls))
     
     #P.ylim((-2., 0.))
-    P.xlim((0., 10.))
-    P.ylim((0., 5.))
+    #P.xlim((0., 10.))
+    #P.ylim((0., 5.))
+    P.ylim((-2., 1.))
 
     P.xlabel("$z$", fontsize=15)
-    P.ylabel(r"$\Omega_{\rm DE}(z)$", fontsize=15)
+    #P.ylabel(r"$\Omega_{\rm DE}(z)$", fontsize=15)
+    P.ylabel(r"$w(z)$", fontsize=15)
 
     P.tight_layout()
     P.show()

@@ -7,11 +7,18 @@ import pylab as P
 import wztanh as model
 from matplotlib import ticker
 
-fnames = [ "new_wztanh_cmb_lss.dat", 
-           "new_wztanh_cmb_lss_desi.dat",
-           "new_wztanh_cmb_lss_desi_hetdex.dat", 
-           "new_wztanh_cmb_lss_newexpt_3pbwedge.dat",
-           "new_wztanh_cmb_lss_hetdex_hirax_3pbwedge.dat",
+#fnames = [ "new_wztanh_cmb_lss.dat", 
+#           "new_wztanh_cmb_lss_desi.dat",
+#           "new_wztanh_cmb_lss_desi_hetdex.dat", 
+#           "new_wztanh_cmb_lss_newexpt_3pbwedge.dat",
+#           "new_wztanh_cmb_lss_hetdex_hirax_3pbwedge.dat",
+#           ]
+
+fnames = [ "final_wztanh_cmb_lss.dat", 
+           "final_wztanh_cmb_lss_desi.dat",
+           "final_wztanh_cmb_lss_desi_hetdex.dat", 
+           "final_wztanh_cmb_lss_hirax_pbw.dat",
+           "final_wztanh_cmb_lss_hetdex_hirax_pbw.dat",
            ]
 
 labels = [ 'CMB + LSS', 
@@ -52,10 +59,10 @@ for j, fn in enumerate(fnames):
     
     try:
         pct = np.load("%s.pctcache.npy" % fn)
-        print "%s: Loaded percentiles from cache" % fn
+        print("%s: Loaded percentiles from cache" % fn)
     except:
         # Load samples
-        print "%s: Loading samples" % fn
+        print("%s: Loading samples" % fn)
         dat = load_chain(fn)
         
         ode = []
@@ -68,7 +75,7 @@ for j, fn in enumerate(fnames):
         # Get percentiles of w(z) or OmegaDE(z) in each z bin
         #wz = [model.wz(a, {key: dat[key][i] for key in dat.keys()}) 
         #      for i in range(10000, dat['h'].size)] # dat['h'].size
-        print dat['h'].size
+        print(dat['h'].size)
         pct = np.percentile(ode, pcts, axis=0)
         
         # Save results
@@ -118,6 +125,6 @@ labels = [labels[-1], labels[0], labels[1], labels[2], labels[3]]
 leg = P.legend(handles, labels, loc='upper left', frameon=False)
 
 P.tight_layout()
-P.savefig("pub_bounds_tanh_hetdex.pdf")
+#P.savefig("pub_bounds_tanh_hetdex.pdf")
 #P.savefig("pub_bounds_mocker.pdf")
 P.show()

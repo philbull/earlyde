@@ -193,7 +193,7 @@ def compare_with_ccl():
     # Set z_eq to include massless neutrinos
     p['z_eq'] = p['omegaM'] \
               / (cosmo1.params['Omega_g'] + cosmo1.params['Omega_n_rel']) - 1.
-    print p['z_eq']
+    print(p['z_eq'])
     
     # Expansion rate
     a = np.logspace(-3., 0., 400)
@@ -336,9 +336,9 @@ def plot_lss_deviations():
     #DM = da / a
     
     theta_s_model = 144.61 / DMs
-    print "Delta(100 theta_s) =", (theta_s_model*100. - theta_s[0])
-    print "Frac(100 theta_s) =", (theta_s_model*100. - theta_s[0])/theta_s[1]
-    #print "D_A,model =", DAz(1./(1.+1090.), plcdm)
+    print("Delta(100 theta_s) =", (theta_s_model*100. - theta_s[0]))
+    print("Frac(100 theta_s) =", (theta_s_model*100. - theta_s[0])/theta_s[1])
+    #print("D_A,model =", DAz(1./(1.+1090.), plcdm))
     
     import pyccl as ccl
     cosmo = ccl.Cosmology(Omega_c=plcdm['omegaM']-plcdm['omegaB'], 
@@ -348,8 +348,8 @@ def plot_lss_deviations():
     zstar = 1090.
     da_co = ccl.comoving_angular_distance(cosmo, 1./(1.+zstar))
     theta_s_ccl = 144.61 / da_co
-    print "Delta(100 theta_s) =", (theta_s_ccl*100. - theta_s[0])
-    print "Frac(100 theta_s) =", (theta_s_ccl*100. - theta_s[0])/theta_s[1]
+    print("Delta(100 theta_s) =", (theta_s_ccl*100. - theta_s[0]))
+    print("Frac(100 theta_s) =", (theta_s_ccl*100. - theta_s[0])/theta_s[1])
     
     exit()
     

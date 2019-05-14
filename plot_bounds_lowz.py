@@ -7,12 +7,16 @@ import pylab as P
 import wztanh as model
 from matplotlib import ticker
 
-fnames = [ #"new_wztanh_cmb_lss.dat", 
-           "wztanh_cmb_lss_new.dat", "wztanh_cmb_lss_new2.dat", ]
+#fnames = [ #"new_wztanh_cmb_lss.dat", 
+#           "wztanh_cmb_lss_new.dat", "wztanh_cmb_lss_new2.dat", ]
+
+fnames = [ "apr_wztanh_cmb_lss.dat",
+           "apr_wztanh_cmb_lss_desi.dat",
+           "apr_wztanh_cmb_lss_desi_hirax_pbw.dat" ]
 
 labels = [ 'CMB + LSS', "  + DESI", r'  + HIRAX ($3\times$ PB wedge)']
 
-colours = [ '#555555', '#E6773D', '#863AB7' ]
+colours = [ '#555555', '#E6773D', 'b', '#863AB7' ]
 
 OBS = 'ode' # 'ode' 'Hz'
 
@@ -37,7 +41,7 @@ def load_chain(fname):
 # Load data and select random samples
 for j, fn in enumerate(fnames):
     
-    z = np.linspace(0., 10., 100)
+    z = np.linspace(0., 10., 1000)
     a = 1./(1.+z)
     pcts = [2.5, 16., 50., 84., 97.5]
     
@@ -50,10 +54,10 @@ for j, fn in enumerate(fnames):
             pct = np.load("%s.Hz.pctcache.npy" % fn)
         else:
             raise ValueError("Unknown observable type '%s'." % OBS)
-        print "%s: Loaded percentiles from cache" % fn
+        print("%s: Loaded percentiles from cache" % fn)
     except:
         # Load samples
-        print "%s: Loading samples" % fn
+        print("%s: Loading samples" % fn)
         dat = load_chain(fn)
         
         # Get percentiles of Omega_DE(z) in each z bin
@@ -93,7 +97,7 @@ for j, fn in enumerate(fnames):
             pct = np.percentile(hz, pcts, axis=0)
             np.save("%s.Hz.pctcache" % fn, pct)
         
-        print dat['h'].size
+        print(dat['h'].size)
     
     # Plot 95% percentiles
     lbl = labels[j]
@@ -104,7 +108,7 @@ for j, fn in enumerate(fnames):
                        label=lbl, lw=1.5)
         P.plot(z, pct[2], color=colours[1], lw=2.5, label=lbl)
     else:
-        dashes = [1.5,1.5] if j == 2 else []
+        dashes = [2.5,2.5] if j == 2 else []
         P.plot(z, pct[0], color=colours[j], lw=2.5, label=lbl, dashes=dashes)
         P.plot(z, pct[-1], color=colours[j], lw=2.5, dashes=dashes)
         P.plot(z, pct[1], color=colours[j], lw=2.5, label=lbl, dashes=dashes)
