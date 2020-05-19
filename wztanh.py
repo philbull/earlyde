@@ -63,8 +63,15 @@ def wz(a, params):
         return w
     
     # tanh model
-    w0 = params['w0']; winf = params['winf']
-    zc = params['zc']; deltaz = params['deltaz']
+    w0 = params['w0']
+    zc = params['zc']
+    deltaz = params['deltaz']
+    if 'winf' in params.keys():
+        winf = params['winf']
+    elif 'deltaw' in params.keys():
+        winf = w0 - params['deltaw']
+    else:
+        raise ValueError("Parameters 'winf' or 'deltaw' must be specified.")
     return w0 + 0.5 * (winf - w0) * (np.tanh((z - zc) / deltaz) + 1.)
     
 def omegaR(params):

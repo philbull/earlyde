@@ -9,15 +9,15 @@ import emcee
 import wztanh as model
 from load_data_files import *
 
-np.random.seed(23) #15
+np.random.seed(30) #15
 
 # MCMC sampler settings
-NTHREADS = 6
+NTHREADS = 7
 NSAMPLES = 50000 #10000 #10 #1500
 NWALKERS = 40
 MOCKER = False
 
-CHAIN_FILE_ROOT = "chains/final_wztanh_seed23"
+CHAIN_FILE_ROOT = "chains/final_wztanh_seed30"
 
 # Which likelihoods to use
 use_lss = True
@@ -315,7 +315,8 @@ if __name__ == '__main__':
     priors = {
         #'w0':       (-1., -0.1), # FIXME: Enable for Mocker model
         'w0':       (-2., -0.1), # FIXME: Enable for tanh model
-        'winf':     (-2., -0.1),
+        #'winf':     (-2., -0.1),
+        'deltaw':   (-2., 2.),
         'zc':       (-0.2, 10.), #(-0.2, 1000.),
         'deltaz':   (0.01, 10.), #(0.01, 3.), #(0.01, 5.),
         'omegaB':   (0.01, 0.1),
@@ -328,7 +329,8 @@ if __name__ == '__main__':
     # Set initial/default parameter values
     params0 = {
         'w0':       -0.99,
-        'winf':     -0.8,
+        #'winf':     -0.8,
+        'deltaw':   0.,
         'zc':       2.0, #1e5
         'deltaz':   0.5,
         'omegaB':   0.0493,
@@ -340,7 +342,8 @@ if __name__ == '__main__':
     
     # Set which parameters should be sampled
     #pnames = ['h', 'omegaB', 'omegaM', 'w0',]
-    pnames = ['omegaM', 'w0', 'h', 'omegaB', 'winf', 'zc', 'deltaz']
+    ##pnames = ['omegaM', 'w0', 'h', 'omegaB', 'winf', 'zc', 'deltaz']
+    pnames = ['omegaM', 'w0', 'h', 'omegaB', 'deltaw', 'zc', 'deltaz']
     #pnames = ['omegaM', 'w0', 'h', 'omegaB', 'omegaK', 'winf', 'zc', 'deltaz']
     #pnames = ['omegaM', 'w0', 'omegaB', 'winf', 'zc', 'deltaz']
     if MOCKER: pnames = ['h', 'omegaB', 'omegaM', 'w0', 'Cpow']

@@ -129,12 +129,71 @@ if idx == 6:
               r'  + HIRAX high-z (horiz. wedge)',
               ]
 
+if idx == 7:
+    #figname = "pub_bounds_tanh_hirax_%s.pdf" % MODE
+    if MODE == 'lowz': legend = False
+    
+    tmpl = "chains/final_wztanh_seed21_cmb_lss%s"
+    expts = [ '', 
+              '_desi_hetdex',
+              '_hizrax_pbw',
+              '_cosvis_pbw',
+              '_cvlowz',
+              '_cvlowz_hetdex',
+              '_cvlowz_hizrax_pbw',
+              ]
+             
+    colours = [ '#E1E1E1', '#D92E1C', '#E6773D', '#F5BC00', 'm', 'c', 'y']
+    fnames = [tmpl % e for e in expts]
+    labels = [ 'CMB + LSS', 
+              r'  + DESI + HETDEX',
+              r'  + HIRAX (high-z)',
+              r'  + Stage 2',
+              r'  + CV lim. (low-z)',
+              r'  + CV lim. (low-z) + HETDEX',
+              r'  + CV lim. (low-z) + HIRAX (high-z)',
+              ]
+
+if idx == -1:
+    P.title("Seed 21") # 21, 30
+    #figname = "pub_bounds_tanh_hirax_%s.pdf" % MODE
+    if MODE == 'lowz': legend = False
+    
+    tmpl = "chains/final_wztanh_seed21_cmb_lss%s"
+    expts = [
+        '_cosvis_hw', 
+        '_cosvis_nw', 
+        '_cosvis_pbw', 
+        '_cvlowz_cosvis_pbw', 
+        '_cvlowz', 
+        '_cvlowz_hetdex', 
+        '_cvlowz_hizrax_pbw', 
+        '', 
+        '_desi', 
+        '_desi_hetdex', 
+        '_desi_hirax_pbw', 
+        '_desi_hizrax_hw', 
+        '_desi_hizrax_nw', 
+        '_desi_hizrax_pbw', 
+        '_hetdex_hirax_pbw', 
+        '_hirax_hw', 
+        '_hirax_nw', 
+        '_hirax_pbw', 
+        '_hizrax_hw', 
+        '_hizrax_nw', 
+        '_hizrax_pbw',
+    ]
+             
+    colours = [ '#E1E1E1', '#D92E1C', '#E6773D', '#F5BC00', 'm', 'c', 'y',]
+    colours += colours + colours + colours
+    fnames = [tmpl % e for e in expts]
+    labels = expts
 
 # Load data and select random samples
 for j, fn in enumerate(fnames):
     
-    if "_hizrax_hw" in fn:
-        fn = fn.replace("21", "23")
+    #if '_cosvis_pbw' in fn:
+    #    fn = fn.replace("_seed21", "")
         
     
     #z = np.linspace(0., 10., 800)
@@ -159,7 +218,7 @@ for j, fn in enumerate(fnames):
         dat = load_chain(fn)
         
         ode = []
-        for i in range(200000, dat['h'].size, 2):
+        for i in range(1200000, dat['h'].size, 1):
             pp = {key: dat[key][i] for key in dat.keys()}
             if 'mocker' in fn: pp['mocker'] = True # FIXME
             OmegaDE0 = 1. - pp['omegaM'] - model.omegaR(pp) - 0.
@@ -224,6 +283,8 @@ P.gca().tick_params(axis='both', which='minor', labelsize=18, size=5.,
 #handles = [handles[-1], handles[0], handles[1], handles[2], handles[3]]
 #labels = [labels[-1], labels[0], labels[1], labels[2], labels[3]]
 #leg = P.legend(handles, labels, loc='upper left', frameon=False)
+
+"""
 if legend:
     # Re-order legend so CMB+LSS is always first
     _handles, _labels = P.gca().get_legend_handles_labels()
@@ -233,7 +294,7 @@ if legend:
         handles += [_handles[i],]
         labels += [_labels[i],]
     leg = P.legend(handles, labels, loc='upper left', frameon=False)
-    
+""" 
 
 P.tight_layout()
 #P.savefig("pub_bounds_tanh_hetdex.pdf")
