@@ -19,10 +19,14 @@ if MODE not in ['lowz', 'full']:
     print("Second argument must be 'full' or 'lowz'")
     sys.exit(1)
 
+SAMPLE_SEED = 88 #44
+BURNIN = 1200000
+NSAMP = 50000
+
 legend = True
 
 if idx == 0:
-    tmpl = "chains/final_wztanh_cmb_lss%s.dat"
+    tmpl = "chains/final_wztanh_seed30_cmb_lss%s"
     expts = ["", "_desi", "_desi_hetdex", "_hirax_pbw", "_hetdex_hirax_pbw", "_cvlowz",]
     colours = [ '#E1E1E1', '#555555', '#863AB7', '#E6773D', '#F5BC00', 'g']
     fnames = [tmpl % e for e in expts]
@@ -34,7 +38,7 @@ if idx == 0:
                '  + CV-limited low-z' ]
 
 if idx == 1:
-    tmpl = "chains/final_wztanh_cmb_lss%s.dat"
+    tmpl = "chains/final_wztanh_cmb_lss%s"
     expts = ["", "_hirax_hw", "_hirax_pbw", "_hirax_nw", "_cvlowz"]
     colours = [ '#E1E1E1', '#555555', '#863AB7', '#E6773D', '#F5BC00', 'g' ]
     fnames = [tmpl % e for e in expts]
@@ -218,7 +222,18 @@ for j, fn in enumerate(fnames):
         dat = load_chain(fn)
         
         ode = []
-        for i in range(1200000, dat['h'].size, 1):
+        print(dat['h'].shape)
+        print("Walkers:", dat['walker'][1200000:1200000+10])
+        
+        # Choose random subset of samples
+        #sample_idxs = range(1200000, dat['h'].size, 1)
+        np.random.seed(SAMPLE_SEED)
+        sample_idxs = np.random.randint(low=BURNIN, high=dat['h'].size, size=NSAMP)
+        print("Selecting %d samples out of %d available (burnin %d discarded)" \
+              % (sample_idxs.size, dat['h'].size - BURNIN, BURNIN))
+        
+        # Calculate model for selected samples
+        for i in sample_idxs:
             pp = {key: dat[key][i] for key in dat.keys()}
             if 'mocker' in fn: pp['mocker'] = True # FIXME
             OmegaDE0 = 1. - pp['omegaM'] - model.omegaR(pp) - 0.
@@ -301,6 +316,7 @@ P.tight_layout()
 #P.savefig("pub_bounds_mocker.pdf")
 try:
     P.savefig(figname)
+    print("Figure saved as", figname)
 except:
     pass
 P.show()
