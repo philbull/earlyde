@@ -291,7 +291,7 @@ for j, fn in enumerate(fnames):
             wz.append( model.wz(a, pp) )
         
         # Get percentiles of w(z) in each z bin
-        pct = np.percentile(ode, pcts, axis=0)
+        pct = np.percentile(wz, pcts, axis=0)
         
         # Save results
         np.save("%s.wzpctcache" % fn, pct)
