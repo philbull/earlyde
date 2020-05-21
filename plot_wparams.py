@@ -5,11 +5,17 @@ Plot results of MCMC chains.
 import numpy as np
 import pylab as P
 import wztanh as model
+from load_data_files import load_chain
 
-MODE = 'scatter'
+#MODE = 'scatter'
 #MODE = 'wz'
-#MODE = 'percentiles'
+MODE = 'percentiles'
 #MODE = 'hist'
+
+SAMPLE_SEED = 88 #44
+BURNIN = 1500000 #1200000
+NSAMP = 5000
+np.random.seed(SAMPLE_SEED)
 
 #fnames = ["wcdm_cmbonly.dat", "wcdm_cmb_lss.dat", "wcdm_cmb_lss_lya.dat",
 #          "wztanh_cmb_lss.dat", "wztanh_zc100_cmb_lss.dat"]
@@ -32,33 +38,35 @@ labels = [ 'tanh CMB + LSS',
            'tanh CMB + LSS + DESI + Stage 2 no wedge' ]
 """
 
-fnames = [ "final2_wztanh_cmb_lss.dat", 
-           "final_wztanh_cmb_lss_desi.dat", 
-           "final2_wztanh_cmb_lss_hirax_hw.dat",
-           "final2_wztanh_cmb_lss_hirax_nw.dat" ]
-labels = [ 'tanh CMB + LSS', 
-           'tanh CMB + LSS + DESI', 
-           'tanh CMB + LSS + HIRAX (horiz. wedge)',
-           'tanh CMB + LSS + HIRAX (no wedge)' ]
+#fnames = [ "final2_wztanh_cmb_lss.dat", 
+#           "final_wztanh_cmb_lss_desi.dat", 
+#           "final2_wztanh_cmb_lss_hirax_hw.dat",
+#           "final2_wztanh_cmb_lss_hirax_nw.dat" ]
+#labels = [ 'tanh CMB + LSS', 
+#           'tanh CMB + LSS + DESI', 
+#           'tanh CMB + LSS + HIRAX (horiz. wedge)',
+#           'tanh CMB + LSS + HIRAX (no wedge)' ]
+
+fnames = [ "chains/final_wztanh_seed30_cmb_lss_desi", ]
+labels = [ "DESI" ]
 
 
-
-def load_chain(fname):
-    """
-    Load MCMC chain output from file
-    """
-    # Load header
-    f = open(fname, 'r')
-    hdr = f.readline()
-    f.close()
-    names = hdr[2:-1].split(' ')
-    
-    # Load data
-    dat = np.genfromtxt(fname).T
-    data = {}
-    for i, n in enumerate(names):
-        data[n] = dat[i]
-    return data
+#def load_chain(fname):
+#    """
+#    Load MCMC chain output from file
+#    """
+#    # Load header
+#    f = open(fname, 'r')
+#    hdr = f.readline()
+#    f.close()
+#    names = hdr[2:-1].split(' ')
+#    
+#    # Load data
+#    dat = np.genfromtxt(fname).T
+#    data = {}
+#    for i, n in enumerate(names):
+#        data[n] = dat[i]
+#    return data
 
 
 if MODE == 'scatter':
@@ -67,13 +75,17 @@ if MODE == 'scatter':
         dat = load_chain(fname)
         print(dat.keys())
         print(dat['w0'].shape)
+        
+        # Select random subsample
+        sample_idxs = np.random.randint(low=BURNIN, high=dat['h'].size, size=NSAMP)
+        
         # Steppyness
         #x = (dat['w0'][10000:] - dat['winf'][10000:]) / (1. + dat['zc'][10000:])
         #y = dat['logl'][10000:] #dat['zc'][10000:] # logL
         
         # w0, winf
-        x = dat['w0'][100000:] # FIXME: 100k!
-        y = dat['winf'][100000:]
+        x = dat['w0'][sample_idxs] # FIXME: 100k!
+        y = dat['winf'][sample_idxs]
         
         P.plot(x, y, ls='none', marker='.', alpha=0.15, label=labels[i])
 
@@ -97,9 +109,13 @@ if MODE == 'hist':
     P.subplot(111)
     for i, fname in enumerate(fnames):
         dat = load_chain(fname)
+        # Select random subsample
+        sample_idxs = np.random.randint(low=BURNIN, high=dat['h'].size, size=NSAMP)
+        
         print(dat.keys())
         print(dat['w0'].shape)
-        x = (dat['w0'][10000:] - dat['winf'][10000:]) / (1. + dat['zc'][10000:])
+        x = (dat['w0'][sample_idxs] - dat['winf'][sample_idxs]) \
+          / (1. + dat['zc'][sample_idxs])
         #dat['w0'][10000:] - dat['winf'][10000:]
         #y = dat['logl'][10000:] #dat['zc'][10000:]
         print("%s: std = %3.3f" % (labels[i], np.std(x)))
@@ -123,11 +139,10 @@ if MODE == 'wz':
     # Load data and select random samples
     #dat = load_chain("wztanh_cmb_lss.dat")
     #dat = load_chain("wztanh_cmb_lss_desi.dat")
-    dat = load_chain(fnames[2])
-    np.random.seed(10)
-    print(dat.keys())
-
-    idxs = np.random.randint(low=10000, high=dat['h'].size, size=1500)
+    dat = load_chain(fnames[0])
+    
+    # Select random subsample
+    sample_idxs = np.random.randint(low=BURNIN, high=dat['h'].size, size=NSAMP)
 
     #idxs = np.where(np.logical_and(dat['logl'] > -3., 
     #                              (dat['w0'] - dat['winf'])/(1. + dat['zc']) > -0.8))
@@ -145,7 +160,8 @@ if MODE == 'wz':
     #P.text(6., -0.25, "$\log\mathcal{L}>-3$,\n$(w_0 - w_\infty)/(1+z_c) > 0.2$")
     #P.text(6., -0.25, "$\log\mathcal{L}>-4$")
 
-    for i in idxs:
+    for j, i in enumerate(sample_idxs):
+        if j % 100 == 0: print("Calculating sample %d / %d" % (j, sample_idxs.size))
         p = {key: dat[key][i] for key in dat.keys()}
         #p['mocker'] = True
         P.plot(z, model.wz(a, p), 'b-', lw=1.8, alpha=0.1)
@@ -177,15 +193,18 @@ if MODE == 'percentiles':
     # Load data and select random samples
     #fnames = ["wztanh_cmb_lss.dat", "wztanh_cmb_lss_desi.dat",
     #          "wzmocker_cmb_lss.dat", "wzmocker_cmb_lss_desi.dat",]
-    fn = fnames[3]
+    fn = fnames[0]
     dat = load_chain(fn)
+    
+    # Select random subsample
+    sample_idxs = np.random.randint(low=BURNIN, high=dat['h'].size, size=NSAMP)
 
     z = np.linspace(0., 10., 100)
     a = 1./(1.+z)
     
     ode = []; wz = []
-    idxs = np.random.randint(low=10000, high=dat['h'].size, size=50000)
-    for i in idxs:
+    for j, i in enumerate(sample_idxs):
+        if j % 100 == 0: print("Calculating sample %d / %d" % (j, sample_idxs.size))
         pp = {key: dat[key][i] for key in dat.keys()}
         #pp['mocker'] = True # FIXME
         wz.append( model.wz(a, pp) )

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-Plot percentile bounds on rho_DE(z).
+Plot percentile bounds on w(z).
 """
 import numpy as np
 import pylab as P
@@ -260,15 +260,6 @@ if idx == -1:
 # Load data and select random samples
 for j, fn in enumerate(fnames):
     
-    #if '_cosvis_pbw' in fn:
-    #    fn = fn.replace("_seed21", "")
-        
-    
-    #z = np.linspace(0., 10., 800)
-    #if '20' in fn or '21' in fn: 
-    #    z = np.linspace(0., 10., 150)
-    #z = np.concatenate( ([0.,], np.logspace(-3., 1., 99)) )
-    
     # Custom redshift sampling
     z = np.concatenate(( [0.,], 
                          np.linspace(0.001, 1., 40), 
@@ -278,19 +269,16 @@ for j, fn in enumerate(fnames):
     pcts = [2.5, 16., 50., 84., 97.5]
     
     try:
-        pct = np.load("%s.pctcache.npy" % fn)
+        pct = np.load("%s.wzpctcache.npy" % fn)
         print("%s: Loaded percentiles from cache" % fn)
     except:
         # Load samples
         print("%s: Loading samples" % fn)
         dat = load_chain(fn)
-        
-        ode = []
+        wz = []
         print(dat['h'].shape)
-        print("Walkers:", dat['walker'][1200000:1200000+10])
         
         # Choose random subset of samples
-        #sample_idxs = range(1200000, dat['h'].size, 1)
         np.random.seed(SAMPLE_SEED)
         sample_idxs = np.random.randint(low=BURNIN, high=dat['h'].size, size=NSAMP)
         print("Selecting %d samples out of %d available (burnin %d discarded)" \
@@ -300,17 +288,13 @@ for j, fn in enumerate(fnames):
         for i in sample_idxs:
             pp = {key: dat[key][i] for key in dat.keys()}
             if 'mocker' in fn: pp['mocker'] = True # FIXME
-            OmegaDE0 = 1. - pp['omegaM'] - model.omegaR(pp) - 0.
-            ode.append( OmegaDE0 * model.omegaDE(a, pp) )
+            wz.append( model.wz(a, pp) )
         
-        # Get percentiles of w(z) or OmegaDE(z) in each z bin
-        #wz = [model.wz(a, {key: dat[key][i] for key in dat.keys()}) 
-        #      for i in range(10000, dat['h'].size)] # dat['h'].size
-        print(dat['h'].size)
+        # Get percentiles of w(z) in each z bin
         pct = np.percentile(ode, pcts, axis=0)
         
         # Save results
-        np.save("%s.pctcache" % fn, pct)
+        np.save("%s.wzpctcache" % fn, pct)
     
     # Plot 95% percentiles
     lbl = labels[j]
@@ -324,10 +308,10 @@ for j, fn in enumerate(fnames):
         P.plot(z, pct[-1], color=colours[j], lw=LW, dashes=dashes)
 
 # LCDM curves
-plcdm = model.pdict(h=0.6727, omegaM=0.3166, omegaK=0.0, omegaB=0.04941, 
-                    w0=-1., winf=-1., zc=1e5, deltaz=0.5)
-OmegaDE0 = 1. - plcdm['omegaM'] - model.omegaR(plcdm) - 0.
-P.plot(z, OmegaDE0*model.omegaDE(a, plcdm), 'k-', lw=1.8, alpha=1.)
+#plcdm = model.pdict(h=0.6727, omegaM=0.3166, omegaK=0.0, omegaB=0.04941, 
+#                    w0=-1., winf=-1., zc=1e5, deltaz=0.5)
+#OmegaDE0 = 1. - plcdm['omegaM'] - model.omegaR(plcdm) - 0.
+#P.plot(z, OmegaDE0*model.omegaDE(a, plcdm), 'k-', lw=1.8, alpha=1.)
 
 #P.plot(z, plcdm['omegaM'] * a**-3., 'k-', lw=1.8)
 #P.plot(z, 0.10 * plcdm['omegaM'] * a**-3., 'k--', lw=1.8, alpha=0.4)
@@ -338,7 +322,7 @@ P.plot(z, OmegaDE0*model.omegaDE(a, plcdm), 'k-', lw=1.8, alpha=1.)
 
 if MODE == 'lowz':
     P.xlim((0., 2.2))
-    P.ylim((0.5, 0.9))
+    P.ylim((-1.5, -0.2))
     
     P.gca().xaxis.set_major_locator(ticker.MultipleLocator(0.5))
     P.gca().xaxis.set_minor_locator(ticker.MultipleLocator(0.1))
@@ -347,7 +331,7 @@ else:
     try:
         P.ylim(YLIM)
     except:
-        P.ylim((0.2, 1.5))
+        P.ylim((-1.5, -0.2))
     
     P.gca().yaxis.set_major_locator(ticker.MultipleLocator(0.5))
     P.gca().yaxis.set_minor_locator(ticker.MultipleLocator(0.1))
@@ -355,7 +339,7 @@ else:
     P.gca().xaxis.set_minor_locator(ticker.MultipleLocator(0.5))
 
 P.xlabel("$z$", fontsize=15)
-P.ylabel(r"$\rho_{\rm DE}(z) / \rho_{\rm crit}(z=0)$", fontsize=15, labelpad=10)
+P.ylabel(r"$w(z)$", fontsize=15, labelpad=10)
 
 P.gca().tick_params(axis='both', which='major', labelsize=18, size=8., 
                     width=1.5, pad=8.)
@@ -380,11 +364,9 @@ if legend:
     leg = P.legend(handles, labels, loc='upper left', frameon=False) 
 
 P.tight_layout()
-#P.savefig("pub_bounds_tanh_hetdex.pdf")
-#P.savefig("pub_bounds_mocker.pdf")
 try:
-    P.savefig(figname)
-    print("Figure saved as", figname)
+    #P.savefig(figname)
+    print("Figure **NOT** saved as", figname)
 except:
     pass
 P.show()
