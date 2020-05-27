@@ -264,7 +264,8 @@ for j, fn in enumerate(fnames):
     z = np.concatenate(( [0.,], 
                          np.linspace(0.001, 1., 40), 
                          np.linspace(1.05, 3., 34), 
-                         np.linspace(3.15, 10., 25) ))
+                         np.linspace(3.15, 10., 25),
+                         np.logspace(np.log10(11.), np.log10(1200.), 40) ))
     a = 1./(1.+z)
     pcts = [2.5, 16., 50., 84., 97.5]
     
@@ -327,7 +328,7 @@ if MODE == 'lowz':
     P.gca().xaxis.set_major_locator(ticker.MultipleLocator(0.5))
     P.gca().xaxis.set_minor_locator(ticker.MultipleLocator(0.1))
 else:
-    P.xlim((0., 7.))
+    P.xlim((0., 1170.))
     try:
         P.ylim(YLIM)
     except:
@@ -335,8 +336,8 @@ else:
     
     P.gca().yaxis.set_major_locator(ticker.MultipleLocator(0.5))
     P.gca().yaxis.set_minor_locator(ticker.MultipleLocator(0.1))
-    P.gca().xaxis.set_major_locator(ticker.MultipleLocator(2.0))
-    P.gca().xaxis.set_minor_locator(ticker.MultipleLocator(0.5))
+    #P.gca().xaxis.set_major_locator(ticker.MultipleLocator(2.0))
+    #P.gca().xaxis.set_minor_locator(ticker.MultipleLocator(0.5))
 
 P.xlabel("$z$", fontsize=15)
 P.ylabel(r"$w(z)$", fontsize=15, labelpad=10)

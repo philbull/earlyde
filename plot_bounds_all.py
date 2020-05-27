@@ -185,7 +185,7 @@ if idx == 8:
               '_cvlowz_cosvis_pbw',
               ]
              
-    colours = [ '#E1E1E1', '#000000', '#555753', '#fcaf3e', '#ad7fa8', '#3465a4',]
+    colours = [ '#E1E1E1', '#64a164', '#555753', '#fcaf3e', '#ad7fa8', '#3465a4',]
     fnames = [tmpl % e for e in expts]
     labels = [ 'CMB + LSS',
               #r'  + DESI', 
@@ -212,7 +212,7 @@ if idx == 9:
               '_cvlowz_cosvis_pbw',
               ]
              
-    colours = [ '#E1E1E1', '#000000', '#3465a4', '#ad7fa8',]
+    colours = [ '#E1E1E1', '#64a164', '#3465a4', '#ad7fa8',]
     fnames = [tmpl % e for e in expts]
     labels = [ 'CMB + LSS', 
               r'  + CV-lim. (low-z)',
