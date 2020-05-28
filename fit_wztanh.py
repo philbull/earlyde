@@ -8,6 +8,7 @@ import copy, time, sys
 import emcee
 import wztanh as model
 from load_data_files import *
+from multiprocessing import Pool
 
 np.random.seed(200)
 
@@ -224,7 +225,8 @@ def loglike(pvals, pnames, params0, priors, verbose=False):
     return logL
 
 
-def run_mcmc(pnames, params0, priors):
+
+def run_mcmc(pnames, params0, priors, pool=None):
     """
     Run MCMC sampler for a given model.
     
@@ -241,6 +243,9 @@ def run_mcmc(pnames, params0, priors):
     
     priors : dict
         Dictionary containing prior ranges for a sub-set of parameters.
+    
+    pool : multiprocessing.Pool, optional
+        A Pool() object, to handle multiprocessing. Deafult
     """
     # Get initial parameter values and starting value of log-likelihood
     p0 = np.array([params0[pp] for pp in pnames])
@@ -253,13 +258,15 @@ def run_mcmc(pnames, params0, priors):
     p0 += np.random.normal(loc=0., scale=1e-5, size=p0.shape)
     # Don't allow initial parameter values to get stuck at zero
     
-    # Initialise emcee sampler and write header of chain file
-    sampler = emcee.EnsembleSampler(NWALKERS, ndim, loglike, 
-                                    args=(pnames, params0, priors), 
-                                    threads=NTHREADS)
+    # Write header of chain file
     f = open(CHAIN_FILE, "w")
     f.write("# %s %s %s\n" % ("walker", "logl", " ".join(pnames)))
     f.close()
+    
+    # Initialise emcee sampler
+    sampler = emcee.EnsembleSampler(NWALKERS, ndim, loglike, 
+                                    args=(pnames, params0, priors), 
+                                    pool=pool)
 
     # Iterate over samples
     nsteps = NSAMPLES
@@ -268,6 +275,10 @@ def run_mcmc(pnames, params0, priors):
            % (nsteps, NWALKERS, NTHREADS))
     
     for i, state in enumerate(sampler.sample(p0, iterations=nsteps)):
+        
+        # Only save every 50th sample
+        if i % 50 != 0: continue
+        
         # Save current sample to disk
         position = state.coords
         prob = state.log_prob #result[1]
@@ -278,12 +289,11 @@ def run_mcmc(pnames, params0, priors):
         f.close()
         
         # Print status
-        if (i+1) % 50 == 0:
-            print("Step %d / %d done in %3.3f sec" \
-                    % (i+1, nsteps, time.time() - tstart))
-            print("  ", ", ".join([pn for pn in pnames]))
-            print("  ", ", ".join(["%3.3f" % pv for pv in position[0]]))
-            print("  ", "%3.3e" % prob[k])
+        print("Step %d / %d: 50 steps done in %3.3f sec" \
+                % (i+1, nsteps, time.time() - tstart))
+        print("  ", ", ".join([pn for pn in pnames]))
+        print("  ", ", ".join(["%3.3f" % pv for pv in position[0]]))
+        print("  ", "%3.3e" % prob[k])
         tstart = time.time()
     
     print("Done.")
@@ -361,6 +371,7 @@ if __name__ == '__main__':
     print("\tOutput file:", CHAIN_FILE)
     
     # Run the MCMC
-    run_mcmc(pnames, params0, priors)
+    with Pool(NTHREADS) as pool:
+        run_mcmc(pnames, params0, priors, pool=pool)
     
     
