@@ -20,11 +20,11 @@ SAMPLE_SEED = 88 #44
 BURNIN = 200000 #1200000
 NSAMP = 150000 #50000
 
-legend = True
+legend = False
 
 plt.title("Seed 100") # 21, 30
 #figname = "pub_bounds_tanh_hirax_%s.pdf" % MODE
-if MODE == 'lowz': legend = False
+#if MODE == 'lowz': legend = False
 
 tmpl = "chains/seed100_selseed22/final_wztanh_seed100_cmb_lss%s"
 #tmpl = "chains/final_wztanh_seed100_cmb_lss%s"
