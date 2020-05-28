@@ -46,7 +46,9 @@ expt_sets = [
     ['CVLOWZ',],                # 17
     ['CVLOWZ', 'HETDEX'],       # 18
     ['CVLOWZ', 'HIZRAX_pbw',],  # 19
-    ['CVLOWZ', 'CosVis_pbw']    # 20
+    ['CVLOWZ', 'CosVis_pbw'],    # 20
+    ['CVLOWZ', 'DESI'],         # 21
+    ['CosVis_pbw', 'DESI'],     # 22
 ]
 use_expts = [] #['DESI', 'HETDEX']
 
@@ -277,7 +279,7 @@ def run_mcmc(pnames, params0, priors):
         
         # Print status
         if (i+1) % 50 == 0:
-            print("Step %d / %d done in %3.1f sec" \
+            print("Step %d / %d done in %3.3f sec" \
                     % (i+1, nsteps, time.time() - tstart))
             print("  ", ", ".join([pn for pn in pnames]))
             print("  ", ", ".join(["%3.3f" % pv for pv in position[0]]))
