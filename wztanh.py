@@ -139,8 +139,8 @@ def chi(a, params):
     """
     # Ensure denser sampling near a=1, where errors can get large
     aa = np.concatenate(
-            (np.logspace(np.log10(1./(1.+ZMAX)), np.log10(0.7), NSAMP_CHI/2),
-             np.logspace(np.log10(0.71), 0., NSAMP_CHI/2)) )
+            (np.logspace(np.log10(1./(1.+ZMAX)), np.log10(0.7), NSAMP_CHI//2),
+             np.logspace(np.log10(0.71), 0., NSAMP_CHI//2)) )
     
     integ = 1./(aa**2.) / (Hz(aa, params)/100.) # Convert H -> H/(100 km/s)
     intchi = -cumtrapz(integ[::-1], aa[::-1], initial=0.)[::-1]
