@@ -66,6 +66,8 @@ def wz(a, params):
     w0 = params['w0']
     zc = params['zc']
     deltaz = params['deltaz']
+    if 'winf' in params.keys() and 'deltaw' in params.keys():
+        raise KeyError("Must specify either 'winf' or 'deltaw', not both")
     if 'winf' in params.keys():
         winf = params['winf']
     elif 'deltaw' in params.keys():

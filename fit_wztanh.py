@@ -9,15 +9,15 @@ import emcee
 import wztanh as model
 from load_data_files import *
 
-np.random.seed(30) #15
+np.random.seed(200)
 
 # MCMC sampler settings
-NTHREADS = 7
-NSAMPLES = 50000 #10000 #10 #1500
-NWALKERS = 40
+NTHREADS = 28
+NSAMPLES = 150000
+NWALKERS = 80
 MOCKER = False
 
-CHAIN_FILE_ROOT = "chains/final_wztanh_seed30"
+CHAIN_FILE_ROOT = "chains/final_wztanh_seed200"
 
 # Which likelihoods to use
 use_lss = True
@@ -247,7 +247,9 @@ def run_mcmc(pnames, params0, priors):
     
     # Get random initial positions for walkers (best-fit values x some O(1) factor)
     p0 = np.outer(np.ones(NWALKERS), p0)
-    p0 *= np.random.normal(loc=1., scale=0.00005, size=p0.shape)
+    p0 *= np.random.normal(loc=1., scale=0.02, size=p0.shape)
+    p0 += np.random.normal(loc=0., scale=1e-5, size=p0.shape)
+    # Don't allow initial parameter values to get stuck at zero
     
     # Initialise emcee sampler and write header of chain file
     sampler = emcee.EnsembleSampler(NWALKERS, ndim, loglike, 
@@ -263,10 +265,10 @@ def run_mcmc(pnames, params0, priors):
     print("Starting %d samples with %d walkers and %d threads." \
            % (nsteps, NWALKERS, NTHREADS))
     
-    for i, result in enumerate(sampler.sample(p0, iterations=nsteps)):
+    for i, state in enumerate(sampler.sample(p0, iterations=nsteps)):
         # Save current sample to disk
-        position = result[0]
-        prob = result[1]
+        position = state.coords
+        prob = state.log_prob #result[1]
         f = open(CHAIN_FILE, "a")
         for k in range(NWALKERS):
             pvals = " ".join(["%s" % x for x in position[k]])
@@ -330,7 +332,7 @@ if __name__ == '__main__':
     params0 = {
         'w0':       -0.99,
         #'winf':     -0.8,
-        'deltaw':   0.,
+        'deltaw':   0.1,
         'zc':       2.0, #1e5
         'deltaz':   0.5,
         'omegaB':   0.0493,
