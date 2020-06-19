@@ -47,9 +47,11 @@ expt_sets = [
     ['CVLOWZ',],                # 17
     ['CVLOWZ', 'HETDEX'],       # 18
     ['CVLOWZ', 'HIZRAX_pbw',],  # 19
-    ['CVLOWZ', 'CosVis_pbw'],    # 20
+    ['CVLOWZ', 'CosVis_pbw'],   # 20
     ['CVLOWZ', 'DESI'],         # 21
     ['CosVis_pbw', 'DESI'],     # 22
+    ['SpecTel', ],              # 23
+    ['SpecTel', 'DESI'],        # 24
 ]
 use_expts = [] #['DESI', 'HETDEX']
 
@@ -67,7 +69,8 @@ fisher_mats = {
     'HIZRAX_nw':    "Fisher-full-iHIRAX_highz_2yr",
     'HIZRAX_pbw':   "Fisher-full-iHIRAX_highz_2yr_3pbwedge",
     'HIZRAX_hw':    "Fisher-full-iHIRAX_highz_2yr_horizwedge",
-    'CVLOWZ':       "Fisher-full-gCVLOWZ"
+    'CVLOWZ':       "Fisher-full-gCVLOWZ",
+    'SpecTel':      "Fisher-full-SpecTel",
 }
 
 # Sound horizon at drag epoch

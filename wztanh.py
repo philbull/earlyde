@@ -71,7 +71,9 @@ def wz(a, params):
     if 'winf' in params.keys():
         winf = params['winf']
     elif 'deltaw' in params.keys():
-        winf = w0 - params['deltaw']
+        #winf = w0 + params['deltaw'] # This is the new version, with correct sign
+        winf = w0 - params['deltaw'] # FIXME: This is the old version, w. incorrect sign!
+        # Correct mathematical def: delta w = winf - w0
     else:
         raise ValueError("Parameters 'winf' or 'deltaw' must be specified.")
     return w0 + 0.5 * (winf - w0) * (np.tanh((z - zc) / deltaz) + 1.)
