@@ -14,7 +14,7 @@ np.random.seed(200)
 
 # MCMC sampler settings
 NTHREADS = 28
-NSAMPLES = 150000
+NSAMPLES = 100000 #150000
 NWALKERS = 80
 MOCKER = False
 
@@ -52,6 +52,37 @@ expt_sets = [
     ['CosVis_pbw', 'DESI'],     # 22
     ['SpecTel', ],              # 23
     ['SpecTel', 'DESI'],        # 24
+    ['CVALLZ'],                 # 25
+    
+    ['CVALLZ-01'],              # 26
+    ['CVALLZ-02'],              # 27
+    ['CVALLZ-03'],              # 28
+    ['CVALLZ-04'],              # 29
+    ['CVALLZ-05'],              # 30
+    ['CVALLZ-06'],              # 31
+    ['CVALLZ-07'],              # 32
+    ['CVALLZ-08'],              # 33
+    ['CVALLZ-09'],              # 34
+    ['CVALLZ-10'],              # 35
+    ['CVALLZ-11'],              # 36
+    ['CVALLZ-12'],              # 37
+    ['CVALLZ-13'],              # 38
+    ['CVALLZ-14'],              # 39
+    ['CVALLZ-15'],              # 40
+    ['CVALLZ-A'],               # 41
+    ['CVALLZ-B'],               # 42
+    ['CVALLZ-C'],               # 43
+    ['CVALLZ-D'],               # 44
+    ['CVALLZ-E'],               # 45
+    ['CVALLZ-F'],               # 46
+    ['CVALLZ-G'],               # 47
+    ['CVALLZ-H'],               # 48
+    ['CVALLZ-I'],               # 49
+    ['CVALLZ-J'],               # 50
+    ['CVALLZ-K'],               # 51
+    ['CVALLZ-L'],               # 52
+    ['CVALLZ-M'],               # 53
+    ['CVALLZ-N'],               # 54
 ]
 use_expts = [] #['DESI', 'HETDEX']
 
@@ -71,7 +102,42 @@ fisher_mats = {
     'HIZRAX_hw':    "Fisher-full-iHIRAX_highz_2yr_horizwedge",
     'CVLOWZ':       "Fisher-full-gCVLOWZ",
     'SpecTel':      "Fisher-full-SpecTel",
+    'CVALLZ':       "Fisher-full-gCVALLZ",
+    'CVALLZ-01':    "Fisher-full-gCVALLZ-0.10-0.30",
+    'CVALLZ-02':    "Fisher-full-gCVALLZ-0.10-0.70",
+    'CVALLZ-03':    "Fisher-full-gCVALLZ-0.10-1.10",
+    'CVALLZ-04':    "Fisher-full-gCVALLZ-0.10-1.50",
+    'CVALLZ-05':    "Fisher-full-gCVALLZ-0.10-1.90",
+    'CVALLZ-06':    "Fisher-full-gCVALLZ-0.10-2.30",
+    'CVALLZ-07':    "Fisher-full-gCVALLZ-0.10-2.70",
+    'CVALLZ-08':    "Fisher-full-gCVALLZ-0.10-3.10",
+    'CVALLZ-09':    "Fisher-full-gCVALLZ-0.10-3.50",
+    'CVALLZ-10':    "Fisher-full-gCVALLZ-0.10-3.90",
+    'CVALLZ-11':    "Fisher-full-gCVALLZ-0.10-4.30",
+    'CVALLZ-12':    "Fisher-full-gCVALLZ-0.10-4.70",
+    'CVALLZ-13':    "Fisher-full-gCVALLZ-0.10-5.10",
+    'CVALLZ-14':    "Fisher-full-gCVALLZ-0.10-5.50",
+    'CVALLZ-15':    "Fisher-full-gCVALLZ-0.10-5.90",
+    'CVALLZ-A':     "Fisher-full-gCVALLZ-0.50-5.90",
+    'CVALLZ-B':     "Fisher-full-gCVALLZ-0.90-5.90",
+    'CVALLZ-C':     "Fisher-full-gCVALLZ-1.30-5.90",
+    'CVALLZ-D':     "Fisher-full-gCVALLZ-1.70-5.90",
+    'CVALLZ-E':     "Fisher-full-gCVALLZ-2.10-5.90",
+    'CVALLZ-F':     "Fisher-full-gCVALLZ-2.50-5.90",
+    'CVALLZ-G':     "Fisher-full-gCVALLZ-2.90-5.90",
+    'CVALLZ-H':     "Fisher-full-gCVALLZ-3.30-5.90",
+    'CVALLZ-I':     "Fisher-full-gCVALLZ-3.70-5.90",
+    'CVALLZ-J':     "Fisher-full-gCVALLZ-4.10-5.90",
+    'CVALLZ-K':     "Fisher-full-gCVALLZ-4.50-5.90",
+    'CVALLZ-L':     "Fisher-full-gCVALLZ-4.90-5.90",
+    'CVALLZ-M':     "Fisher-full-gCVALLZ-5.30-5.90",
+    'CVALLZ-N':     "Fisher-full-gCVALLZ-5.70-5.90",
 }
+
+
+
+
+
 
 # Sound horizon at drag epoch
 # Planck 2015 LCDM Mnu = 0.06 eV, Neff = 3.046, see p6 of 1411.1074
@@ -310,7 +376,7 @@ if __name__ == '__main__':
     else:
         print("MUST PASS AN ARGUMENT!")
         sys.exit(1)
-
+    
     # Construct chain filename
     CHAIN_FILE = "%s" % CHAIN_FILE_ROOT
     if use_planck: CHAIN_FILE += "_cmb"
