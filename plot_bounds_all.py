@@ -19,9 +19,10 @@ if MODE not in ['lowz', 'full']:
     print("Second argument must be 'full' or 'lowz'")
     sys.exit(1)
 
-SAMPLE_SEED = 88 #44
-BURNIN = 1200000
-NSAMP = 50000
+SAMPLE_SEED = 22
+BURNIN = 80 * 500 # Leaves 80 * 1500 samples
+#NSAMP = 80 * 1500
+NSAMP = 80 * 1000
 
 legend = True
 
@@ -91,7 +92,7 @@ if idx == 3:
                '  + CV-limited low-z' ]
 
 if idx == 4:
-    tmpl = "chains/final_wztanh_seed100_cmb_lss%s"
+    tmpl = "chains/final_wztanh_seed200_cmb_lss%s"
     expts = [ "", 
              #"_desi",
              "_hirax_nw", "_hirax_pbw", "_hirax_hw",]
@@ -105,11 +106,11 @@ if idx == 4:
               ]
 
 if idx == 5:
-    figname = "pub_bounds_tanh_hirax_%s.pdf" % MODE
+    figname = "pub_bounds_tanh_hirax_%s.200.pdf" % MODE
     legend = True
     if MODE == 'lowz': legend = False
     
-    tmpl = "chains/final_wztanh_seed100_cmb_lss%s"
+    tmpl = "chains/final_wztanh_seed200_cmb_lss%s"
     expts = [ "", 
              "_hirax_hw", "_hirax_pbw", "_hirax_nw",]
     colours = [ '#E1E1E1', '#D92E1C', '#E6773D', '#F5BC00']
@@ -121,7 +122,7 @@ if idx == 5:
               ]
 
 if idx == 6:
-    #figname = "pub_bounds_tanh_hirax_%s.pdf" % MODE
+    #figname = "pub_bounds_tanh_hirax_%s.200.pdf" % MODE
     if MODE == 'lowz': legend = False
     
     tmpl = "chains/final_wztanh_seed21_cmb_lss%s"
@@ -140,13 +141,13 @@ if idx == 6:
               ]
 
 if idx == 7:
-    figname = "pub_bounds_tanh_compare_desi_%s.pdf" % MODE
+    figname = "pub_bounds_tanh_compare_desi_%s.200.pdf" % MODE
     if MODE == 'lowz': legend = False
     
     dash = [False for j in range(10)]
     dash[1] = True
     
-    tmpl = "chains/final_wztanh_seed100_cmb_lss%s"
+    tmpl = "chains/final_wztanh_seed200_cmb_lss%s"
     expts = [ '', 
               '_desi_hetdex',
               '_hirax_pbw',
@@ -169,19 +170,20 @@ if idx == 7:
               ]
 
 if idx == 8:
-    figname = "pub_bounds_tanh_compare_galsurv_%s.pdf" % MODE
+    figname = "pub_bounds_tanh_compare_galsurv_%s.200.pdf" % MODE
     #if MODE == 'lowz': legend = False
     
     dash = [False for j in range(10)]
     dash[1] = True
     LW = 2.1
     
-    tmpl = "chains/final_wztanh_seed100_cmb_lss%s"
+    tmpl = "chains/final_wztanh_seed200_cmb_lss%s"
     expts = [ '', 
               #'_desi',
               '_cvlowz',
               '_cvlowz_hetdex',
-              '_cvlowz_hizrax_pbw',
+              #'_cvlowz_hizrax_pbw',
+              '_cvlowz_desi',
               '_cvlowz_cosvis_pbw',
               ]
              
@@ -191,13 +193,14 @@ if idx == 8:
               #r'  + DESI', 
               r'  + CV-lim. (low-z)',
               r'  + CV-lim. (low-z) + HETDEX',
-              r'  + CV-lim. (low-z) + HIRAX high-z ($3\times$PB)',
+              #r'  + CV-lim. (low-z) + HIRAX high-z ($3\times$PB)',
+              r'  + CV-lim. (low-z) + DESI',
               r'  + CV-lim. (low-z) + Stage 2 ($3\times$PB)',
               ]
 
 
 if idx == 9:
-    figname = "pub_bounds_tanh_compare_lowzhighz_%s.pdf" % MODE
+    figname = "pub_bounds_tanh_compare_lowzhighz_%s.200.pdf" % MODE
     #if MODE == 'lowz': legend = False
     YLIM = (0.4, 1.1)
     
@@ -205,28 +208,127 @@ if idx == 9:
     dash[1] = True
     
     
-    tmpl = "chains/final_wztanh_seed100_cmb_lss%s"
+    tmpl = "chains/final_wztanh_seed200_cmb_lss%s"
     expts = [ '', 
               '_cvlowz',
+              '_spectel',
               '_cosvis_pbw',
               '_cvlowz_cosvis_pbw',
               ]
              
-    colours = [ '#E1E1E1', '#64a164', '#3465a4', '#ad7fa8',]
+    colours = [ '#E1E1E1', 'r', '#64a164', '#3465a4', '#ad7fa8',]
     fnames = [tmpl % e for e in expts]
     labels = [ 'CMB + LSS', 
               r'  + CV-lim. (low-z)',
+              r'  + Next-gen. spec-z',
               r'  + Stage 2 ($3\times$PB wedge)',
               r'  + CV-lim. (low-z) + Stage 2 ($3\times$PB wedge)',
               ]
 
 
-if idx == -1:
-    P.title("Seed 100 Sel 22") # 21, 30
-    #figname = "pub_bounds_tanh_hirax_%s.pdf" % MODE
+if idx == 10:
+    figname = "pub_bounds_mocker_compare_desi_%s.200.pdf" % MODE
     if MODE == 'lowz': legend = False
     
-    tmpl = "chains/seed100_selseed22/final_wztanh_seed100_cmb_lss%s"
+    dash = [False for j in range(10)]
+    dash[1] = True
+    
+    tmpl = "chains/final_mocker_seed200_cmb_lss%s"
+    expts = [ '', 
+              '_desi_hetdex',
+              '_hirax_pbw',
+              '_cosvis_pbw',
+              ]
+    
+    colours = [ '#E1E1E1', '#555753', '#E6773D', '#3465a4']
+    fnames = [tmpl % e for e in expts]
+    labels = [ 'CMB + LSS', 
+              r'  + DESI + HETDEX',
+              r'  + HIRAX ($3\times$PB wedge)',
+              r'  + Stage 2 ($3\times$PB wedge)',
+             ]
+
+
+if idx == 11:
+    figname = "pub_bounds_tanh_compare_spectel_%s.200.pdf" % MODE
+    #if MODE == 'lowz': legend = False
+    YLIM = (0.4, 1.1)
+    
+    dash = [False for j in range(10)]
+    dash[1] = True
+    
+    
+    tmpl = "chains/final_wztanh_seed200_cmb_lss%s"
+    expts = [ '', 
+              '_cvlowz',
+              '_cosvis_pbw',
+              '_cvlowz_cosvis_pbw',
+              '_spectel',
+              '_spectel_desi',
+              ]
+             
+    colours = [ '#E1E1E1', '#64a164', '#3465a4', '#ad7fa8', 'r', 'g']
+    fnames = [tmpl % e for e in expts]
+    labels = [ 'CMB + LSS', 
+              r'  + CV-lim. (low-z)',
+              r'  + Stage 2 ($3\times$PB wedge)',
+              r'  + CV-lim. (low-z) + Stage 2 ($3\times$PB wedge)',
+              r'  + SpecTel',
+              r'  + SpecTel + DESI'
+              ]
+
+if idx == 12:
+    figname = "pub_bounds_tanh_compare_cvallz.pdf"
+    YLIM = (0.4, 1.1)
+    
+    dash = [False for j in range(40)]
+    dash[1] = True
+    
+    
+    tmpl = "chains/final_wztanh_seed200_cmb_lss_cvallz-%s"
+    #expts = ['%02d' % (i+1) for i in range(15)]
+    expts = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N']
+    expts = [s.lower() for s in expts]
+             
+    colours = [ '#E1E1E1', '#64a164', '#3465a4', '#ad7fa8', 'r', 'g']
+    colours += colours + colours + colours
+    colours += colours
+    fnames = [tmpl % e for e in expts]
+    labels = expts
+
+
+if idx == 13:
+    figname = "pub_bounds_tanh_compare_highz_%s.200.pdf" % MODE
+    #if MODE == 'lowz': legend = False
+    YLIM = (0.2, 1.4)
+    
+    dash = [False for j in range(10)]
+    dash[4] = True
+    
+    tmpl = "chains/final_wztanh_seed200_cmb_lss%s"
+    expts = [ '', 
+              '_cosvis_hw',
+              '_cosvis_pbw',
+              '_cosvis_nw',
+              '_spectel',
+              ]
+             
+    colours = [ '#E1E1E1', '#092f61', '#3465a4', '#84a9d9', '#11bdbd'] 
+    fnames = [tmpl % e for e in expts]
+    labels = [ 'CMB + LSS', 
+              r'  + Stage 2 (horiz. wedge)',
+              r'  + Stage 2 ($3\times$PB wedge)',
+              r'  + Stage 2 (no wedge)',
+              r'  + Next-gen. spec-z',
+              ]
+
+
+if idx == -1:
+    P.title("Seed 200 Sel 22") # 21, 30
+    #figname = "pub_bounds_tanh_hirax_%s.200.pdf" % MODE
+    if MODE == 'lowz': legend = False
+    
+    tmpl = "chains/final_wztanh_seed200_cmb_lss%s"
     #tmpl = "chains/final_wztanh_seed100_cmb_lss%s"
     expts = [
         '_cosvis_hw', 
@@ -287,7 +389,7 @@ for j, fn in enumerate(fnames):
         
         ode = []
         print(dat['h'].shape)
-        print("Walkers:", dat['walker'][1200000:1200000+10])
+        #print("Walkers:", dat['walker'][1200000:1200000+10])
         
         # Choose random subset of samples
         #sample_idxs = range(1200000, dat['h'].size, 1)
@@ -380,8 +482,8 @@ if legend:
     leg = P.legend(handles, labels, loc='upper left', frameon=False) 
 
 P.tight_layout()
-#P.savefig("pub_bounds_tanh_hetdex.pdf")
-#P.savefig("pub_bounds_mocker.pdf")
+#P.savefig("pub_bounds_tanh_hetdex.200.pdf")
+#P.savefig("pub_bounds_mocker.200.pdf")
 try:
     P.savefig(figname)
     print("Figure saved as", figname)

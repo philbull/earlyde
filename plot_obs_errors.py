@@ -14,6 +14,7 @@ col_hrx = '#D92E1C'; col_hrx_light = '#FF9B99'
 col_hizrx = col_hizrax_light = '#E9AD2B'
 col_cv = '#00529B'; col_cv_light = '#85C5FF'
 col_cvlowz = '#3E893E'
+col_spectel = 'c'
 
 ii = 0 # H(z)
 #ii = 1 # D_A(z)
@@ -35,13 +36,14 @@ fisher_hizrax = [ "Fisher-full-iHIRAX_highz_2yr",
                   "Fisher-full-iHIRAX_highz_2yr_horizwedge" ]
 fisher_hetdex = ["Fisher-full-HETDEXdz03",]
 fisher_cvlowz = ["Fisher-full-gCVLOWZ"]
+fisher_spectel = ["Fisher-full-SpecTel"]
 
 fishers = fisher_desi + fisher_cosvis + fisher_hirax + fisher_hizrax \
-        + fisher_hetdex + fisher_cvlowz
+        + fisher_hetdex + fisher_cvlowz + fisher_spectel
 names = ['DESI', 'CosVis_nw', 'CosVis_3pb', 'CosVis_hw', 
          'HIRAX_nw', 'HIRAX_3pb', 'HIRAX_hw', 
          'HIZRAX_nw', 'HIZRAX_3pb', 'HIZRAX_hw',
-         'HETDEXdz03', 'CVLOWZ']
+         'HETDEXdz03', 'CVLOWZ', 'SpecTel']
 
 # Get std deviations for Fisher matrices
 zc = {}; frac_std = {}
@@ -64,6 +66,11 @@ P.subplot(111)
 _zc = zc['CVLOWZ']
 mu = frac_std['CVLOWZ'][ii]
 P.plot(_zc, mu, marker='o', color=col_cvlowz, lw=1.8, alpha=0.8)
+
+# SpecTel
+_zc = zc['SpecTel']
+mu = frac_std['SpecTel'][ii]
+P.plot(_zc, mu, marker='o', color=col_spectel, lw=1.8, alpha=1.0, zorder=100)
 
 # HIRAX high-z
 _zc = zc['HIZRAX_nw']
@@ -116,6 +123,9 @@ P.plot(zc['HETDEXdz03'], frac_std['HETDEXdz03'][ii], marker='o',
 
 P.plot(-_zc, mu, marker='o', color=col_cvlowz, lw=1.8, alpha=0.8,
        label="CV-lim low-$z$") # for legend
+
+P.plot(-_zc, mu, marker='o', color=col_spectel, lw=1.8, alpha=0.8,
+       label="Next-gen. spec-z") # for legend
 
 P.plot(-_zc, mu + dp, color=col_hrx, marker='o', ms=5., label="HIRAX") # for legend
 P.plot(-_zc, mu + dp, color=col_hizrx, marker='o', ms=5., 

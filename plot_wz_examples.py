@@ -18,7 +18,7 @@ col_hizrx = col_hizrax_light = '#E9AD2B'
 col_cv = '#00529B'; col_cv_light = '#85C5FF'
 
 if MODE == 'tracker':
-    colours = ['#D92E1Cff', '#D92E1C99', '#D92E1C44']
+    colours = ['#D92E1Cff', '#D92E1C99', '#D92E1C44', '#D92E1C44']
 else:
     colours = ['#00529Bff', '#00529Bbb', '#00529B88', '#00529B44']
 
@@ -59,6 +59,12 @@ tracker3 = {
     'zc':       4.0,
     'deltaz':   0.5,
 }
+tracker4 = {
+    'w0':       -0.9,
+    'winf':     -1.1,
+    'zc':       4.0,
+    'deltaz':   0.5,
+}
 
 mocker1 = {
     'w0':       -0.9,
@@ -85,16 +91,17 @@ mocker4 = {
 # Collect parameter sets together
 if MODE == 'tracker':
     paramsets = {
-        'Tracker ($z_c=2$, $\Delta z = 1.5$)':  tracker1,
-        'Tracker ($z_c=2$, $\Delta z = 0.5$)':  tracker2,
-        'Tracker ($z_c=4$, $\Delta z = 0.5$)':  tracker3,
+        '($z_c=2$, $\Delta z = 1.5$)':  tracker1,
+        '($z_c=2$, $\Delta z = 0.5$)':  tracker2,
+        '($z_c=4$, $\Delta z = 0.5$, $\Delta w = +0.2$)':  tracker3,
+        '($z_c=4$, $\Delta z = 0.5$, $\Delta w = -0.2$)':  tracker4,
     }
 else:
     paramsets = {
-        'Mocker ($C = 0.5$)':   mocker1,
-        'Mocker ($C = 1$)':     mocker2,
-        'Mocker ($C = 2$)':     mocker3,
-        'Mocker ($C = 3$)':     mocker4,
+        '($C = 0.5$)':   mocker1,
+        '($C = 1$)':     mocker2,
+        '($C = 2$)':     mocker3,
+        '($C = 3$)':     mocker4,
     }
 
 # Get LCDM values
@@ -122,8 +129,10 @@ for i, key in enumerate(paramsets):
     w = model.wz(a, p)
     
     # Plot observables
-    ax1.plot(z, w, lw=1.8, label=key, color=colours[i])
-    ax2.plot(z, hz/hz_lcdm - 1., lw=1.8, label=key, color=colours[i])
+    ls = 'solid'
+    if i == 3: ls = 'dashed'
+    ax1.plot(z, w, lw=1.8, label=key, color=colours[i], ls=ls)
+    ax2.plot(z, hz/hz_lcdm - 1., lw=1.8, label=key, color=colours[i], ls=ls)
 
 
 #ax1.axhline(-1., lw=1.5, color='k', ls='dashed')
@@ -139,13 +148,13 @@ ax2.set_ylabel(r"$\Delta H(z) / H_{\Lambda{\rm CDM}}(z)$",
                fontsize=15, labelpad=10)
 
 if MODE == 'tracker':
-    ax1.set_ylim((-1.0, -0.5))
+    ax1.set_ylim((-1.2, -0.5))
     ax2.set_ylim((-0.01, 0.048))
 else:
-    ax1.set_ylim((-1.0, 0.1))
+    ax1.set_ylim((-1.0, 0.15))
     ax2.set_ylim((-0.01, 0.117))
 
-ax1.legend(loc='upper left', frameon=False, prop={'size': 'medium'})
+ax1.legend(loc='upper left', frameon=False, prop={'size': 11.5}, ncol=2)
 
 for ax in (ax1, ax2):
     ax.xaxis.set_major_locator(ticker.MultipleLocator(2.0))
@@ -156,12 +165,15 @@ for ax in (ax1, ax2):
     ax.tick_params(axis='both', which='minor', labelsize=16, size=5., 
                         width=1.5, pad=5.)
 
+ax1.yaxis.set_major_locator(ticker.MultipleLocator(0.2))
+ax1.yaxis.set_minor_locator(ticker.MultipleLocator(0.1))
+
 ax2.yaxis.set_major_locator(ticker.MultipleLocator(0.02))
 ax2.yaxis.set_minor_locator(ticker.MultipleLocator(0.01))
 
 ax1.tick_params(axis='x', which='both', labelbottom=False, direction='in')
 
-P.gcf().set_size_inches((6., 7.))
+P.gcf().set_size_inches((7., 8.))
 #P.tight_layout()
 
 if MODE == 'tracker':

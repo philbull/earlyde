@@ -20,7 +20,7 @@ if MODE not in ['lowz', 'full']:
     sys.exit(1)
 
 SAMPLE_SEED = 88 #44
-BURNIN = 1200000
+BURNIN = 200000 #1200000
 NSAMP = 50000
 
 legend = True

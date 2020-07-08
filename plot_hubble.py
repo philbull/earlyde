@@ -10,17 +10,17 @@ from matplotlib import ticker
 import os 
 import corner
 
-SAMPLE_SEED = 88 #44
-BURNIN = 200000 #1200000
-NSAMP = 150000 #50000
+SAMPLE_SEED = 22 #44
+BURNIN = 80 * 500 # Leaves 80 * 1500 samples #200000 #1200000
+NSAMP = 80 * 1500 #150000 #50000
 
 PARAM = 'h'
 
 legend = True
 
-figname = "pub_h0_tanh_all.pdf"
+figname = "pub_h0_tanh_all.200.pdf"
 
-tmpl = "chains/final_wztanh_seed30_cmb_lss%s"
+tmpl = "chains/final_wztanh_seed200_cmb_lss%s"
 expts = [
     '',
     
